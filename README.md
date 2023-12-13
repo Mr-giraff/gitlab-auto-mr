@@ -1,13 +1,6 @@
-# 列出所有本地分支
-$ git branch
-
-# 列出所有远程分支
-$ git branch -r
-
-# 列出所有本地分支和远程分支
-$ git branch -a
-
-# 切换到指定分支，并更新工作区
-$ git checkout [branch-name]
-
-
+# 使用流程
+1. cd 本地目标仓库地址
+2. 更新 constants 为某次 hotfix 信息
+3. 执行 node 具体路径/createBranches.js
+4. 执行 node 具体路径/cherryPick.js
+5. 执行 node 具体路径/mergeRuquest.js
