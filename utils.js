@@ -106,11 +106,13 @@ function cherryPickCommitToLocalBranch(branchName, commitHash) {
     console.log(
       `已成功将 commit ${commitHash} cherry-pick 到本地分支 ${branchName}`
     );
+    return true;
   } catch (error) {
     console.error(
       `将 commit ${commitHash} cherry-pick 到本地分支 ${branchName} 失败:`,
       error
     );
+    return false;
   }
 }
 
