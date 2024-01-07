@@ -22,18 +22,22 @@ function getRemoteLatestCommit(branchName) {
   }
 }
 
-function getCommitMessage(commitSHA) {
+function getCommitInfo(commitSHA) {
   try {
-    // 使用 git log 命令获取 commit 的 message
-    const commitMessage = execSync(
-      `git log -n 1 --pretty=format:"%s" ${commitSHA}`
-    )
+    // 使用 git show 命令获取 commit 的 message 和描述信息
+    const commitInfo = execSync(`git show --format=%B -s ${commitSHA}`)
       .toString()
       .trim();
-    return commitMessage;
+
+    // 分割 message 和描述信息
+    const [message, description] = commitInfo.split("\n\n", 2);
+
+    console.log("Commit Message:", message);
+    console.log("Commit Description:", description);
+
+    return [message, description];
   } catch (error) {
-    console.error(`获取 commit message 失败: ${error.message}`);
-    return null;
+    console.error("获取 commit 信息失败:", error.message);
   }
 }
 
@@ -110,11 +114,13 @@ function cherryPickCommitToLocalBranch(branchName, commitHash) {
 }
 
 function createMergeRequestOptions(branch, jiraNumber, commitHash) {
+  const [title, description = `Closes ${jiraNumber}`] =
+    getCommitInfo(commitHash);
   return {
     source: getLocalBranchName(branch, jiraNumber),
     target: getRemoteReleaseBranchName(branch),
-    title: getCommitMessage(commitHash),
-    description: `Closes ${jiraNumber}`,
+    title: title,
+    description: `${description}`,
   };
 }
 
@@ -135,17 +141,17 @@ function createMergeRequest(options) {
     }
 
     if (options.assignees) {
-        options.assignees.map(assignee => {
-            command += ` -o merge_request.assign="${assignee}"`;
-        })
+      options.assignees.map((assignee) => {
+        command += ` -o merge_request.assign="${assignee}"`;
+      });
     }
 
     if (options.reviewers) {
-        options.reviewers.map(reviewer => {
-            command += ` -o merge_request.reviewer="${reviewer}"`;
-        })
+      options.reviewers.map((reviewer) => {
+        command += ` -o merge_request.reviewer="${reviewer}"`;
+      });
     }
-    
+
     // 推送分支并创建合并请求
     execSync(command);
 
