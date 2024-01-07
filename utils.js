@@ -11,7 +11,8 @@ function getRemoteReleaseBranchName(branchName) {
 function getRemoteLatestCommit(branchName) {
   try {
     // 执行 git ls-remote 命令获取远程分支的提交信息
-    const output = execSync(`git ls-remote origin ${branchName}`)
+    // 指定 refs/heads/ 前缀，避免 refs/for 污染
+    const output = execSync(`git ls-remote origin refs/heads/${branchName}`)
       .toString()
       .trim();
     const commitHash = output.split("\t")[0];
