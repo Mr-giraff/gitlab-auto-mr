@@ -16,6 +16,7 @@ function getRemoteLatestCommit(branchName) {
       .toString()
       .trim();
     const commitHash = output.split("\t")[0];
+    if(commitHash === '') { console.error(`获取远程 ${branchName} 最新 commit 编号失败: 请检查分支远程是否存在`); }
     return commitHash;
   } catch (error) {
     console.error(`获取远程 ${branchName} 最新 commit 编号失败:`, error);
@@ -44,11 +45,13 @@ function getCommitInfo(commitSHA) {
 
 function createBranchFromCommit(branchName, commitHash) {
   try {
-    // 创建新分支并切换到该分支
-    execSync(`git checkout -b ${branchName} ${commitHash}`);
-    console.log(`已成功创建并切换到新分支 ${branchName}`);
+    // 创建新分支并
+    execSync(`git branch ${branchName} ${commitHash}`);
+    console.log(`已成功创建新分支 ${branchName}`);
+    return true;
   } catch (error) {
     console.error(`创建分支 ${branchName} 失败:`, error);
+    return false;
   }
 }
 
