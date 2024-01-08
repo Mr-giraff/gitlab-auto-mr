@@ -1,4 +1,4 @@
-const { getLocalBranchName } = require("./utils");
+const { getLocalBranchName, getRemoteReleaseBranchName } = require("./utils");
 
 // 替换为你的远程分支数组和 Jira 名称
 const branches = [
@@ -18,8 +18,13 @@ const localBranchNames = branches.map((branch) =>
   getLocalBranchName(branch, jiraName)
 );
 
+const remoteBranchNames = branches.map((branch) =>
+  getRemoteReleaseBranchName(branch)
+);
+
 module.exports = {
   localBranchNames,
+  remoteBranchNames,
   branches,
   jiraName,
   commitHash,
