@@ -1,21 +1,61 @@
-const { branches, jiraName } = require("./constants");
+const { localBranchNames, remoteBranchNames } = require("./constants");
 const {
-  getLocalBranchName,
-  getRemoteReleaseBranchName,
   getRemoteLatestCommit,
   createBranchFromCommit,
+  deleteLocalBranch,
 } = require("./utils");
 
-// 存储本地分支名的数组
-const localBranches = branches.map((branch) => {
-  const localBranchName = getLocalBranchName(branch, jiraName);
-  const remoteReleaseBranchName = getRemoteReleaseBranchName(branch);
-  const commit = getRemoteLatestCommit(remoteReleaseBranchName);
-  
-  createBranchFromCommit(localBranchName, commit);
-  
-  return localBranchName;
-});
+function afterCreate({ passed, generatedLocalBranches }) {
+  if (passed) {
+    // 打印生成的本地分支数组
+    console.log("生成的本地分支数组:", generatedLocalBranches);
+  } else {
+    // 回滚
+    generatedLocalBranches.forEach(deleteLocalBranch);
+  }
+}
 
-// 打印生成的本地分支数组
-console.log("生成的本地分支数组:", localBranches);
+// 远程目标分支的最新 commit
+function getRemoteBranchLatestCommits() {
+  const commits = [];
+
+  const passed = remoteBranchNames.every((branch) => {
+    const commit = getRemoteLatestCommit(branch);
+    commits.push(commit);
+    return commit;
+  });
+
+  return {
+    commits,
+    passed,
+  };
+}
+
+function createLocalBranchByCommit(branches, commits) {
+  // 存储创建成功的本地分支
+  const generatedLocalBranches = [];
+
+  // 判断是否每个本地分支都创建成功
+  const passed = branches.every((branch, index) => {
+    const commit = commits[index];
+
+    if (commit && createBranchFromCommit(branch, commit)) {
+      generatedLocalBranches.push(branch);
+      return true;
+    }
+    return false;
+  });
+
+  return {
+    passed,
+    generatedLocalBranches,
+  };
+}
+
+function createBranch() {
+  const { passed, commits } = getRemoteBranchLatestCommits();
+  if (!passed) return;
+  afterCreate(createLocalBranchByCommit(localBranchNames, commits));
+}
+
+createBranch()
